@@ -1,0 +1,6 @@
+
+    <Response>
+        <Say voice="woman">Here is the response from our AI.</Say>
+        <Play>output_audio.mp3</Play>
+    </Response>
+    
