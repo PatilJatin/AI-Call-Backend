@@ -1,8 +1,11 @@
 import os
 import openai
+from dotenv import load_dotenv
 from twilio.rest import Client
 from flask import Flask, request, Response, send_file, redirect, url_for, session
 from app.elevenlabs import generate_voice
+
+load_dotenv()
 
 app = Flask(__name__)
 
