@@ -2,9 +2,9 @@ import requests
 import os
 
 def generate_voice(text):
-    url = f"https://api.elevenlabs.io/v1/text-to-speech/{os.getenv('VOICE_ID')}"
+    url = f"https://api.elevenlabs.io/v1/text-to-speech/pNInz6obpgDQGcFmaJgB"
     headers = {
-        'xi-api-key': os.getenv('ELEVENLABS_API_KEY'),
+        'xi-api-key': 'sk_313167b34a9da0fffb3417bbd325e36dc5ed0edcebd1b436',
         'Content-Type': 'application/json',
     }
     data = {
