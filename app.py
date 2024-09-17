@@ -22,7 +22,7 @@ from_phone_number = os.getenv('FROM_PHONE_NUMBER')
 
 
 # Initialize the Twilio client with the correct Account SID and Auth Token ######################################################################################
-twilio_client = Client(account_sid, auth_token)
+twilio_client = Client(twilio_account_sid, twilio_auth_token)
 
 
 # [Start] Refine the System Message to instruct ChatGPT ########################################################################################################## 
@@ -94,12 +94,21 @@ def greet_client():
     audio_url = generate_voice(greeting_text)
 
     # Create TwiML response to play the audio and redirect for gathering user input ###############################
+    # response = f"""
+    # <Response>
+    #     <Play>{audio_url}</Play>
+    #     <Redirect>/gather-input</Redirect>
+    # </Response>
+    # """
+
     response = f"""
     <Response>
         <Play>{audio_url}</Play>
-        <Redirect>/gather-input</Redirect>
+        <Gather input="speech" action="/process-input" method="POST" timeout="10" speechTimeout="auto"/>
+        <Redirect>/are_you_there_response</Redirect>
     </Response>
     """
+
     return Response(response, mimetype='text/xml')
 # [End] Function for greeting the client ########################################################################################################################
 
@@ -109,7 +118,7 @@ def greet_client():
 def gather_input():
     if request.method == 'POST':
         user_input = request.form.get('SpeechResult')
-        print(f"\n\n === User input captured: {user_input}")
+        print(f"\n\n _____ User input captured _____: {user_input}")
 
         # Check for specific phrases to end the call ################################################################################
         if user_input and user_input.strip():
@@ -124,7 +133,13 @@ def gather_input():
         # TwiML to gather speech input with a timeout #################################################################
         response = """
         <Response>
-            <Gather input="speech" action="/gather-input" method="POST" timeout="15" speechTimeout="auto"/>
+            <Gather 
+                input="speech" 
+                action="/gather-input" 
+                method="POST" 
+                timeout="15" 
+                speechTimeout="auto"
+            />
             <Redirect>/no_input_response</Redirect>
         </Response>
         """
@@ -142,7 +157,23 @@ def process_input():
     """
     ######################################################################################################################
 
-    user_input = request.args.get('user_input', '')
+    # user_input = request.args.get('user_input', '')
+
+
+    if request.method == 'POST':
+        user_input = request.form.get('SpeechResult')
+    else:
+        user_input = request.args.get('user_input', '')
+
+    print(f"\n\n _____ User input captured _____: {user_input}")
+
+    # Check for specific phrases to end the call ###########################################################################
+    if user_input and user_input.strip():
+        if "hang up" in user_input.lower() or "end call" in user_input.lower():
+            return redirect(url_for('end_call_response'))
+    else:
+        return redirect(url_for('are_you_there_response'))
+
 
     # ai_response = openai.ChatCompletion.create(
     #     model="gpt-4",
@@ -231,15 +262,21 @@ def process_input():
                 input="speech" 
                 action="/gather-input" 
                 method="POST" 
-                timeout="15" 
+                timeout="10" 
                 speechTimeout="auto"
             >
-                <!-- The AI will actively listen during this pause ############################################################-->
-                <Pause length="5"/>  <!-- Pause for 5 seconds  ################################################################-->
+                
             </Gather>
             <Redirect>/are_you_there_response</Redirect>
         </Response>
     """
+
+
+
+    # <!-- The AI will actively listen during this pause ############################################################-->
+    #             <Pause length="5"/>  <!-- Pause for 5 seconds  ################################################################-->
+
+
     return Response(response, mimetype='text/xml')
 # [End] Function to process client's input and generate AI response #######################################################################################################
 
@@ -254,7 +291,13 @@ def are_you_there_response():
     response = f"""
     <Response>
         <Play>{audio_url}</Play>
-        <Gather input="speech" action="/gather-input" method="POST" timeout="5" speechTimeout="auto"/>
+        <Gather 
+            input="speech" 
+            action="/gather-input" 
+            method="POST" 
+            timeout="5" 
+            speechTimeout="auto"
+        />
         <Redirect>/no_input_response</Redirect>
     </Response>
     """
