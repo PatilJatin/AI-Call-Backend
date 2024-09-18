@@ -13,7 +13,7 @@ app.secret_key = os.urandom(24)
 
 
 # [Start] Tools Credentials #####################################################################################################################################
-openai_api_key = os.getenv('OPENAI_API_KEY')
+openai.api_key = os.getenv('OPENAI_API_KEY')
 twilio_account_sid = os.getenv('TWILIO_ACCOUNT_SID')
 twilio_auth_token = os.getenv('TWILIO_AUTH_TOKEN')
 from_phone_number = os.getenv('FROM_PHONE_NUMBER')
@@ -73,22 +73,22 @@ def get_predefined_response(user_input):
 
 
 # [Start] Main function for AI Sales Calling #####################################################################################################################
-@app.route("/make-ai-call", methods=['POST'])
+@app.route("/make_ai_call", methods=['POST'])
 def make_ai_call():
     client_phone_number = request.form.get('client_phone_number')
 
-    # Start the call and direct it to the /greet-client route #####################################################
+    # Start the call and direct it to the /greet_client route #####################################################
     call = twilio_client.calls.create(
         from_=from_phone_number,
         to=client_phone_number,
-        url=f"http://{request.host}/greet-client"
+        url=f"http://{request.host}/greet_client"
     )
     return {"call_sid": call.sid}, 200
 # [End] Main function for AI Sales Calling #####################################################################################################################
 
 
 # [Start] Function for greeting the client ########################################################################################################################
-@app.route("/greet-client", methods=['GET', 'POST'])
+@app.route("/greet_client", methods=['GET', 'POST'])
 def greet_client():
     greeting_text = "Hello, I am AI Sales Agent from Made In Mars. How can I help you today?"
     audio_url = generate_voice(greeting_text)
@@ -97,14 +97,20 @@ def greet_client():
     # response = f"""
     # <Response>
     #     <Play>{audio_url}</Play>
-    #     <Redirect>/gather-input</Redirect>
+    #     <Redirect>/gather_input</Redirect>
     # </Response>
     # """
 
     response = f"""
     <Response>
         <Play>{audio_url}</Play>
-        <Gather input="speech" action="/process-input" method="POST" timeout="10" speechTimeout="auto"/>
+        <Gather 
+            input="speech" 
+            action="/process_input"
+            method="POST" 
+            timeout="10" 
+            speechTimeout="auto"
+        />
         <Redirect>/are_you_there_response</Redirect>
     </Response>
     """
@@ -114,7 +120,7 @@ def greet_client():
 
 
 # [Start] Function to gather client's input ########################################################################################################################
-@app.route("/gather-input", methods=['GET', 'POST'])
+@app.route("/gather_input", methods=['GET', 'POST'])
 def gather_input():
     if request.method == 'POST':
         user_input = request.form.get('SpeechResult')
@@ -135,7 +141,7 @@ def gather_input():
         <Response>
             <Gather 
                 input="speech" 
-                action="/gather-input" 
+                action="/gather_input"
                 method="POST" 
                 timeout="15" 
                 speechTimeout="auto"
@@ -258,25 +264,16 @@ def process_input():
     response = f"""
         <Response>
             <Play>{audio_url}</Play>
-            <Gather 
+            <Gather
                 input="speech" 
-                action="/gather-input" 
-                method="POST" 
-                timeout="10" 
+                action="/gather_input"
+                method="POST"
+                timeout="10"
                 speechTimeout="auto"
-            >
-                
-            </Gather>
+            />
             <Redirect>/are_you_there_response</Redirect>
         </Response>
     """
-
-
-
-    # <!-- The AI will actively listen during this pause ############################################################-->
-    #             <Pause length="5"/>  <!-- Pause for 5 seconds  ################################################################-->
-
-
     return Response(response, mimetype='text/xml')
 # [End] Function to process client's input and generate AI response #######################################################################################################
 
@@ -293,9 +290,9 @@ def are_you_there_response():
         <Play>{audio_url}</Play>
         <Gather 
             input="speech" 
-            action="/gather-input" 
-            method="POST" 
-            timeout="5" 
+            action="/gather_input"
+            method="POST"
+            timeout="5"
             speechTimeout="auto"
         />
         <Redirect>/no_input_response</Redirect>
