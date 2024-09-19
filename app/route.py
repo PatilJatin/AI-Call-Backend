@@ -5,7 +5,7 @@ from app.elevenlabs import generate_voice
 import os
 
 # Load environment variables
-openai.api_key = os.getenv('OPENAI_API_KEY')
+openai.api_key = os.getenv("OPENAI_API_KEY")
 print(openai.api_key, "open ai key"),
 @app.route("/twilio-response", methods=['POST'])
 def twilio_response():
